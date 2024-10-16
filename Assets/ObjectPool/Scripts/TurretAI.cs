@@ -196,9 +196,9 @@ public class TurretAI : MonoBehaviour
 
 
                 Instantiate(muzzleEffect, muzzleMain.transform.position, muzzleMain.rotation);
-                GameObject missleGo = Instantiate(bullet, muzzleMain.transform.position, muzzleMain.rotation);
-                Projectile projectile = missleGo.GetComponent<Projectile>();
-                projectile.target = lockOnPos;
+                //GameObject missleGo = Instantiate(bullet, muzzleMain.transform.position, muzzleMain.rotation);
+                //Projectile projectile = missleGo.GetComponent<Projectile>();
+                //projectile.target = lockOnPos;
                 break;
 
             case TurretType.Dual:
@@ -208,9 +208,9 @@ public class TurretAI : MonoBehaviour
 
 
                     Instantiate(muzzleEffect, muzzleMain.transform.position, muzzleMain.rotation);
-                    GameObject missleGo = Instantiate(bullet, muzzleMain.transform.position, muzzleMain.rotation);
-                    Projectile projectile = missleGo.GetComponent<Projectile>();
-                    projectile.target = transform.GetComponent<TurretAI>().currentTarget.transform;
+                    //GameObject missleGo = Instantiate(bullet, muzzleMain.transform.position, muzzleMain.rotation);
+                    //Projectile projectile = missleGo.GetComponent<Projectile>();
+                    //projectile.target = transform.GetComponent<TurretAI>().currentTarget.transform;
 
 
                 }
@@ -220,9 +220,9 @@ public class TurretAI : MonoBehaviour
 
 
                     Instantiate(muzzleEffect, muzzleSub.transform.position, muzzleSub.rotation);
-                    GameObject missleGo = Instantiate(bullet, muzzleSub.transform.position, muzzleSub.rotation);
-                    Projectile projectile = missleGo.GetComponent<Projectile>();
-                    projectile.target = transform.GetComponent<TurretAI>().currentTarget.transform;
+                    //GameObject missleGo = Instantiate(bullet, muzzleSub.transform.position, muzzleSub.rotation);
+                    //Projectile projectile = missleGo.GetComponent<Projectile>();
+                    //projectile.target = transform.GetComponent<TurretAI>().currentTarget.transform;
 
 
                 }
