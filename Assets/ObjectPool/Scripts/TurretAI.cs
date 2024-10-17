@@ -14,13 +14,13 @@ public class TurretAI : MonoBehaviour
     }
 
     public GameObject currentTarget;
-    public Transform turreyHead;
+    public Transform turretHead;
 
     public float attackDist = 10.0f;
     public float attackDamage;
     public float shootCoolDown;
     private float timer;
-    public float loockSpeed;
+    public float lookSpeed;
 
     //public Quaternion randomRot;
     public Vector3 randomRot;
@@ -41,7 +41,7 @@ public class TurretAI : MonoBehaviour
 
     void Start()
     {
-        InvokeRepeating("ChackForTarget", 0, 0.5f);
+        InvokeRepeating("CheckForTarget", 0, 0.5f);
         //shotScript = GetComponent<TurretShoot_Base>();
 
         if (transform.GetChild(0).GetComponent<Animator>())
@@ -110,16 +110,16 @@ public class TurretAI : MonoBehaviour
 
     private void FollowTarget() //todo : smooth rotate
     {
-        Vector3 targetDirrection = currentTarget.transform.position - turreyHead.position;
+        Vector3 targetDirrection = currentTarget.transform.position - turretHead.position;
         targetDirrection.y = 0;
         //turreyHead.forward = targetDir;
         if (turretType == TurretType.Single)
         {
-            turreyHead.forward = targetDirrection;
+            turretHead.forward = targetDirrection;
         }
         else
         {
-            turreyHead.transform.rotation = Quaternion.RotateTowards(turreyHead.rotation, Quaternion.LookRotation(targetDirrection), loockSpeed * Time.deltaTime);
+            turretHead.transform.rotation = Quaternion.RotateTowards(turretHead.rotation, Quaternion.LookRotation(targetDirrection), lookSpeed * Time.deltaTime);
         }
     }
 
@@ -157,78 +157,43 @@ public class TurretAI : MonoBehaviour
 
     public void IdleRotate()
     {
-        bool refreshRandom = false;
+        turretHead.rotation = Quaternion.RotateTowards(turretHead.rotation, Quaternion.Euler(randomRot), lookSpeed * Time.deltaTime * 0.2f);
 
-        if (turreyHead.rotation != Quaternion.Euler(randomRot))
+        if (Quaternion.Angle(turretHead.rotation, Quaternion.Euler(randomRot)) < 0.1f)
         {
-            turreyHead.rotation = Quaternion.RotateTowards(turreyHead.transform.rotation, Quaternion.Euler(randomRot), loockSpeed * Time.deltaTime * 0.2f);
-        }
-        else
-        {
-            refreshRandom = true;
-
-            if (refreshRandom)
-            {
-
-                int randomAngle = Random.Range(0, 359);
-                randomRot = new Vector3(0, randomAngle, 0);
-                refreshRandom = false;
-            }
+            randomRot = new Vector3(0, Random.Range(0, 359), 0);
         }
     }
 
     public void Shoot(GameObject target)
     {
-        switch (turretType)
+        GameObject shootedBullet;
+
+        if (turretType == TurretType.Dual && shootLeft)
         {
-            case TurretType.Single:
-                //Aplicar POOL OBJECT
-
-
-                Instantiate(muzzleEffect, muzzleMain.transform.position, muzzleMain.rotation);
-                GameObject missleGo = Instantiate(bullet, muzzleMain.transform.position, muzzleMain.rotation);
-                Projectile projectile = missleGo.GetComponent<Projectile>();
-                projectile.target = currentTarget.transform;
-                break;
-            case TurretType.Catapult:
-                lockOnPos = target.transform;
-                //Aplicar POOL OBJECT
-
-
-                Instantiate(muzzleEffect, muzzleMain.transform.position, muzzleMain.rotation);
-                //GameObject missleGo = Instantiate(bullet, muzzleMain.transform.position, muzzleMain.rotation);
-                //Projectile projectile = missleGo.GetComponent<Projectile>();
-                //projectile.target = lockOnPos;
-                break;
-
-            case TurretType.Dual:
-                if (shootLeft)
-                {
-                    //Aplicar POOL OBJECT
-
-
-                    Instantiate(muzzleEffect, muzzleMain.transform.position, muzzleMain.rotation);
-                    //GameObject missleGo = Instantiate(bullet, muzzleMain.transform.position, muzzleMain.rotation);
-                    //Projectile projectile = missleGo.GetComponent<Projectile>();
-                    //projectile.target = transform.GetComponent<TurretAI>().currentTarget.transform;
-
-
-                }
-                else
-                {
-                    //Aplicar POOL OBJECT
-
-
-                    Instantiate(muzzleEffect, muzzleSub.transform.position, muzzleSub.rotation);
-                    //GameObject missleGo = Instantiate(bullet, muzzleSub.transform.position, muzzleSub.rotation);
-                    //Projectile projectile = missleGo.GetComponent<Projectile>();
-                    //projectile.target = transform.GetComponent<TurretAI>().currentTarget.transform;
-
-
-                }
-
-                shootLeft = !shootLeft;
-                break;
+            shootedBullet = BulletPool.Instance.SpawnFromPool(turretType.ToString(), muzzleSub.transform.position, muzzleSub.rotation);
         }
+        else
+        {
+            shootedBullet = BulletPool.Instance.SpawnFromPool(turretType.ToString(), muzzleMain.transform.position, muzzleMain.rotation);
+        }
+
+        if (turretType == TurretType.Dual)
+        {
+            shootLeft = !shootLeft;
+        }
+
+        if (shootedBullet != null)
+        {
+            Projectile projectile = shootedBullet.GetComponent<Projectile>();
+
+            if (projectile != null && currentTarget != null)
+            {
+                projectile.target = currentTarget.transform;
+            }
+        }
+
+        GameObject fireEffect = Instantiate(muzzleEffect, muzzleMain.transform.position, muzzleMain.rotation);
+        Destroy(fireEffect, 1f);
     }
 }

@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Projectile : MonoBehaviour {
+public class Projectile : MonoBehaviour
+{
 
     public TurretAI.TurretType type = TurretAI.TurretType.Single;
     public Transform target;
@@ -61,7 +62,8 @@ public class Projectile : MonoBehaviour {
                 transform.GetComponent<Rigidbody>().velocity = Vo;
                 lockOn = false;
             }
-        }else if(type == TurretAI.TurretType.Dual)
+        }
+        else if (type == TurretAI.TurretType.Dual)
         {
             Vector3 dir = target.position - transform.position;
             //float distThisFrame = speed * Time.deltaTime;
@@ -74,7 +76,8 @@ public class Projectile : MonoBehaviour {
             transform.Translate(Vector3.forward * Time.deltaTime * speed);
             transform.rotation = Quaternion.LookRotation(newDirection);
 
-        }else if (type == TurretAI.TurretType.Single)
+        }
+        else if (type == TurretAI.TurretType.Single)
         {
             float singleSpeed = speed * Time.deltaTime;
             transform.Translate(transform.forward * singleSpeed * 2, Space.World);
@@ -115,7 +118,8 @@ public class Projectile : MonoBehaviour {
 
     public void Explosion()
     {
-        Instantiate(explosion, transform.position, transform.rotation);
-        Destroy(gameObject);
+        ParticleSystem explosionEffect = Instantiate(explosion, transform.position, transform.rotation);
+        Destroy(explosionEffect.gameObject, 1f);
+        gameObject.SetActive(false);
     }
 }
