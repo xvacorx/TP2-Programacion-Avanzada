@@ -22,7 +22,6 @@ public class TurretAI : MonoBehaviour
     private float timer;
     public float lookSpeed;
 
-    //public Quaternion randomRot;
     public Vector3 randomRot;
     public Animator animator;
 
@@ -37,12 +36,9 @@ public class TurretAI : MonoBehaviour
 
     private Transform lockOnPos;
 
-    //public TurretShoot_Base shotScript;
-
     void Start()
     {
         InvokeRepeating("CheckForTarget", 0, 0.5f);
-        //shotScript = GetComponent<TurretShoot_Base>();
 
         if (transform.GetChild(0).GetComponent<Animator>())
         {
@@ -108,11 +104,10 @@ public class TurretAI : MonoBehaviour
         }
     }
 
-    private void FollowTarget() //todo : smooth rotate
+    private void FollowTarget()
     {
         Vector3 targetDirrection = currentTarget.transform.position - turretHead.position;
         targetDirrection.y = 0;
-        //turreyHead.forward = targetDir;
         if (turretType == TurretType.Single)
         {
             turretHead.forward = targetDirrection;
@@ -125,28 +120,7 @@ public class TurretAI : MonoBehaviour
 
     private void ShootTrigger()
     {
-        //shotScript.Shoot(currentTarget);
         Shoot(currentTarget);
-        //Debug.Log("We shoot some stuff!");
-    }
-
-    Vector3 CalculateVelocity(Vector3 target, Vector3 origen, float time)
-    {
-        Vector3 distance = target - origen;
-        Vector3 distanceXZ = distance;
-        distanceXZ.y = 0;
-
-        float Sy = distance.y;
-        float Sxz = distanceXZ.magnitude;
-
-        float Vxz = Sxz / time;
-        float Vy = Sy / time + 0.5f * Mathf.Abs(Physics.gravity.y) * time;
-
-        Vector3 result = distanceXZ.normalized;
-        result *= Vxz;
-        result.y = Vy;
-
-        return result;
     }
 
     private void OnDrawGizmosSelected()
@@ -176,21 +150,14 @@ public class TurretAI : MonoBehaviour
         else
         {
             shootedBullet = BulletPool.Instance.SpawnFromPool(turretType.ToString(), muzzleMain.transform.position, muzzleMain.rotation);
-        }
-
-        if (turretType == TurretType.Dual)
-        {
-            shootLeft = !shootLeft;
+            if (turretType == TurretType.Dual) shootLeft = !shootLeft;
         }
 
         if (shootedBullet != null)
         {
             Projectile projectile = shootedBullet.GetComponent<Projectile>();
 
-            if (projectile != null && currentTarget != null)
-            {
-                projectile.target = currentTarget.transform;
-            }
+            if (projectile != null && currentTarget != null) projectile.target = currentTarget.transform;
         }
 
         GameObject fireEffect = Instantiate(muzzleEffect, muzzleMain.transform.position, muzzleMain.rotation);

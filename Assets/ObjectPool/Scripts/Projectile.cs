@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using static TurretAI;
 
 public class Projectile : MonoBehaviour
 {
@@ -8,18 +10,15 @@ public class Projectile : MonoBehaviour
     public TurretAI.TurretType type = TurretAI.TurretType.Single;
     public Transform target;
     public bool lockOn;
-    //public bool track;
     public float speed = 1;
     public float turnSpeed = 1;
     public bool catapult;
 
     public float knockBack = 0.1f;
     public float boomTimer = 1;
-    //public Vector3 _startPosition;
-    //public float dist;
 
     public ParticleSystem explosion;
-
+    private GameObject pooledExplosionEffect;
     private void Start()
     {
         if (catapult)
@@ -29,58 +28,51 @@ public class Projectile : MonoBehaviour
 
         if (type == TurretAI.TurretType.Single)
         {
-            Vector3 dir = target.position - transform.position;
-            transform.rotation = Quaternion.LookRotation(dir);
+            Vector3 direction = target.position - transform.position;
+            transform.rotation = Quaternion.LookRotation(direction);
         }
     }
 
     private void Update()
     {
-        if (target == null)
+        boomTimer -= Time.deltaTime;
+
+        if (transform.position.y < -0.2F || boomTimer < 0 || target == null)
         {
             Explosion();
             return;
         }
+        ProjectileBehaviour();
+    }
 
-        if (transform.position.y < -0.2F)
+    private void ProjectileBehaviour()
+    {
+        switch (type)
         {
-            Explosion();
-        }
+            case TurretType.Single:
+                float singleSpeed = speed * Time.deltaTime;
+                transform.Translate(transform.forward * singleSpeed * 2, Space.World);
+                break;
 
-        boomTimer -= Time.deltaTime;
-        if (boomTimer < 0)
-        {
-            Explosion();
-        }
+            case TurretType.Dual:
+                if (target != null)
+                {
+                    Vector3 direction = target.position - transform.position;
+                    Vector3 newDirection = Vector3.RotateTowards(transform.forward, direction, Time.deltaTime * turnSpeed, 0.0f);
+                    Debug.DrawRay(transform.position, newDirection, Color.red);
+                    transform.Translate(Vector3.forward * Time.deltaTime * speed);
+                    transform.rotation = Quaternion.LookRotation(newDirection);
+                }
+                break;
 
-        if (type == TurretAI.TurretType.Catapult)
-        {
-            if (lockOn)
-            {
-                Vector3 Vo = CalculateCatapult(target.transform.position, transform.position, 1);
-
-                transform.GetComponent<Rigidbody>().velocity = Vo;
-                lockOn = false;
-            }
-        }
-        else if (type == TurretAI.TurretType.Dual)
-        {
-            Vector3 dir = target.position - transform.position;
-            //float distThisFrame = speed * Time.deltaTime;
-            Vector3 newDirection = Vector3.RotateTowards(transform.forward, dir, Time.deltaTime * turnSpeed, 0.0f);
-            Debug.DrawRay(transform.position, newDirection, Color.red);
-
-            //transform.Translate(dir.normalized * distThisFrame, Space.World);
-            //transform.LookAt(target);
-
-            transform.Translate(Vector3.forward * Time.deltaTime * speed);
-            transform.rotation = Quaternion.LookRotation(newDirection);
-
-        }
-        else if (type == TurretAI.TurretType.Single)
-        {
-            float singleSpeed = speed * Time.deltaTime;
-            transform.Translate(transform.forward * singleSpeed * 2, Space.World);
+            case TurretType.Catapult:
+                if (lockOn)
+                {
+                    Vector3 Vo = CalculateCatapult(target.transform.position, transform.position, 1);
+                    transform.GetComponent<Rigidbody>().velocity = Vo;
+                    lockOn = false;
+                }
+                break;
         }
     }
 
@@ -90,11 +82,8 @@ public class Projectile : MonoBehaviour
         Vector3 distanceXZ = distance;
         distanceXZ.y = 0;
 
-        float Sy = distance.y;
-        float Sxz = distanceXZ.magnitude;
-
-        float Vxz = Sxz / time;
-        float Vy = Sy / time + 0.5f * Mathf.Abs(Physics.gravity.y) * time;
+        float Vxz = distanceXZ.magnitude / time;
+        float Vy = distance.y / time + 0.5f * Mathf.Abs(Physics.gravity.y) * time;
 
         Vector3 result = distanceXZ.normalized;
         result *= Vxz;
@@ -105,11 +94,10 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.transform.tag == "Player")
+        if (other.CompareTag("Player"))
         {
-            Vector3 dir = other.transform.position - transform.position;
-            //Vector3 knockBackPos = other.transform.position * (-dir.normalized * knockBack);
-            Vector3 knockBackPos = other.transform.position + (dir.normalized * knockBack);
+            Vector3 direction = other.transform.position - transform.position;
+            Vector3 knockBackPos = other.transform.position + (direction.normalized * knockBack);
             knockBackPos.y = 1;
             other.transform.position = knockBackPos;
             Explosion();
@@ -118,8 +106,17 @@ public class Projectile : MonoBehaviour
 
     public void Explosion()
     {
-        ParticleSystem explosionEffect = Instantiate(explosion, transform.position, transform.rotation);
-        Destroy(explosionEffect.gameObject, 1f);
+        GameObject pooledExplosionEffect = BulletPool.Instance.SpawnFromPool("Explosion", transform.position, transform.rotation);
         gameObject.SetActive(false);
+        if (pooledExplosionEffect != null)
+        {
+            StartCoroutine(DisableAfterDelay(pooledExplosionEffect, 1f));
+        }
+    }
+
+    private IEnumerator DisableAfterDelay(GameObject explosionEffect, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        explosionEffect.SetActive(false);
     }
 }

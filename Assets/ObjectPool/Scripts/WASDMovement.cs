@@ -2,29 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WASDMovement : MonoBehaviour {
+public class WASDMovement : MonoBehaviour
+{
 
-	public float speed = 20f;
+    public float speed = 20f;
 
-    void Update () {
-        Vector3 pos = transform.position;
+    void Update()
+    {
+        MovePlayer();
+    }
+    void MovePlayer()
+    {
+        float moveHorizontal = Input.GetAxis("Horizontal");
+        float moveVertical = Input.GetAxis("Vertical");
 
-        if (Input.GetKey ("w")) {
-            pos.z += speed * Time.deltaTime;
-        }
+        Vector3 movement = new Vector3(moveHorizontal, 0, moveVertical);
 
-        if (Input.GetKey ("s")) {
-            pos.z -= speed * Time.deltaTime;
-        }
-
-        if (Input.GetKey ("d")) {
-            pos.x += speed * Time.deltaTime;
-        }
-
-        if (Input.GetKey ("a")) {
-            pos.x -= speed * Time.deltaTime;
-        }
-         
-         transform.position = pos;
+        transform.Translate(movement * speed * Time.deltaTime, Space.World);
     }
 }
