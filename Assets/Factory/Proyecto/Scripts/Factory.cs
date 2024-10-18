@@ -20,7 +20,14 @@ public class Factory : MonoBehaviour
     {
         foreach (KeyValuePair<string, GameObject> entry in objects)
         {
-            entry.Value.SetActive(entry.Key == objectName);
+            if (entry.Key.StartsWith(objectName))
+            {
+                entry.Value.SetActive(true);
+            }
+            else
+            {
+                entry.Value.SetActive(false);
+            }
         }
     }
 }
