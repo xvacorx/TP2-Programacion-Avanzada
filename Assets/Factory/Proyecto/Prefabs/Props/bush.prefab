@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 78663587995101969}
   m_Layer: 0
-  m_Name: Shrub
+  m_Name: bush
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
